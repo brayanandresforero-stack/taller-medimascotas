@@ -50,6 +50,10 @@ app.use('/api/mascota', mascotaRouter);
 app.use('/api/inventario', inventarioRouter);
 app.use('/api/veterinaria', veterinariaRouter);
 
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
+
 // ─── 6. Middleware de errores global ───
 app.use((err, req, res, next) => {
   console.error(err);

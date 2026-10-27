@@ -7,38 +7,31 @@ const getAll = async () => {
   const [rows] = await pool.query(
     'SELECT * FROM empleados ORDER BY IdEmpleado DESC'
   );
-  // Retorna el arreglo con todas las filas encontradas
   return rows;
 };
 
-// Función asíncrona para obtener un empleado específico mediante su ID
 const getById = async (id) => {
-  // Consulta parametrizada utilizando '?' para prevenir inyecciones SQL (cambiar el ID por la entidad correspondiente)
   const [rows] = await pool.query(
     'SELECT * FROM empleados WHERE IdEmpleado = ?', [id]
   );
-  // Retorna únicamente el primer registro del arreglo obtenido
   return rows[0]; 
 };
 
-// Función asíncrona para insertar un nuevo dato en la base de datos
+
 const create = async (datos) => {
-  // Extrae los campos requeridos del objeto de datos recibido (cambiar segun el nombre de la entidad y sus atributos (columnas))
   const { nombre, apellido, documento, email, telefono, cargo,  salario, fecha_ingreso, IDVeterinaria, IDVeterinario} = datos;
-  // Ejecuta la sentencia INSERT con los valores extraídos (cambiar segun el nombre de la entidad y sus atributos (columnas))
   const [result] = await pool.query(
     'INSERT INTO empleados (nombre, apellido, documento, email, telefono, cargo,  salario, fecha_ingreso, IDVeterinaria, IDVeterinario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [nombre, apellido, documento, email, telefono, cargo,  salario, fecha_ingreso, IDVeterinaria, IDVeterinario]
   );
-  // Retorna el nuevo objeto incluyendo el ID autogenerado por MySQL (insertId) cambiar la id del retorno por la entidad correspondiente
+
   return { IdEmpleado: result.insertId, ...datos };
 };
 
-// Función asíncrona para actualizar los datos de un empleado existente
 const update = async (id, datos) => {
-  // Extrae las propiedades a modificar desde el objeto de datos
+  
   const { nombre, apellido, documento, email, telefono, cargo,  salario, fecha_ingreso, IDVeterinaria, IDVeterinario} = datos;
-  // Ejecuta la sentencia UPDATE filtrando por la clave primaria IdEmpleado de la entidad (cambiar segun el nombre de la entidad y sus atributos (columnas))
+  
   const [result] = await pool.query(
     'UPDATE empleados SET nombre = ?, apellido = ?, documento = ?, email = ?, telefono = ?, cargo = ?, salario = ?, fecha_ingreso = ?, IDVeterinaria = ?, IDVeterinario = ? WHERE IdEmpleado = ?',
     [nombre, apellido, documento, email, telefono, cargo, salario, fecha_ingreso, IDVeterinaria, IDVeterinario, id]
@@ -59,3 +52,5 @@ const remove = async (id) => {
 
 // Exportación de las funciones del modelo para ser consumidas por el controlador
 module.exports = { getAll, getById, create, update, remove };
+
+//guardar

@@ -3,6 +3,7 @@ funciona en ese puerto-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediMascotas - Panel Veterinario</title>
@@ -46,17 +47,29 @@ funciona en ese puerto-->
         </div>
     </div>
 
-    <script>
+<script>
+        const API_URL = 'http://localhost:3006';
+
         async function cargarSeccion(endpoint, titulo) {
             document.getElementById('titulo-seccion').innerText = titulo;
             const contenedor = document.getElementById('contenedor-tabla');
             contenedor.innerHTML = '<p>Cargando información desde la API...</p>';
 
             try {
-                const response = await fetch(endpoint);
+                // Recupera el token guardado al iniciar sesión (ajusta la clave si usas otra)
+                const token = localStorage.getItem('token') || '';
+
+                const response = await fetch(API_URL + endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token // Envía el token requerido
+                    }
+                });
 
                 if (!response.ok) {
-                    throw new Error("Respuesta HTTP " + response.status + ": " + response.statusText);
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.error || "Respuesta HTTP " + response.status + ": " + response.statusText);
                 }
 
                 const result = await response.json();
