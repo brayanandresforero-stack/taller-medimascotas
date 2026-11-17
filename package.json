@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -8,3 +9,21 @@
     "morgan": "^1.12.1"
   }
 }
+=======
+  "name": "taller-medimascotas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
+>>>>>>> ed5545ce0f44c86487f169f1069b1288a2ccb567
