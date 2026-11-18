@@ -31,7 +31,12 @@ const app = express();
 // ─── Middlewares globales ───
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://taller-medimascotas.vercel.app',          // 👈 Vercel producción
+    /^https:\/\/taller-medimascotas-.*\.vercel\.app$/, // 👈 Vercel previews
+  ],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
