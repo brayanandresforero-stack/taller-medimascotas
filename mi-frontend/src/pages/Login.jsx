@@ -19,7 +19,8 @@ export default function Login() {
     setError('');
     try {
       const u = await login(form.email, form.password, tipo);
-      navigate(u?.rol === 'veterinario' ? '/panel' : '/perfil');
+      const destino = { veterinario: '/panel', empleado: '/trabajo', usuario: '/citas' };
+      navigate(destino[u?.rol] || '/perfil');
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo iniciar sesión.'));
     }

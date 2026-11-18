@@ -9,8 +9,11 @@ router.use(verificarToken, soloVeterinario);
 router.get('/veterinarias',  ctrl.veterinarias);
 router.post('/veterinarias', ctrl.crearVeterinaria);
 router.get('/citas',         ctrl.citas);
+router.put('/citas/:id',     ctrl.estadoCita);
 router.get('/consultas',     ctrl.consultas);
 router.get('/inventario',    ctrl.inventario);
 router.get('/empleados',     ctrl.empleados);
+router.get('/solicitudes',   ctrl.solicitudes);
+router.put('/solicitudes/:id', ctrl.responderSolicitud);
 
 module.exports = router;

@@ -25,7 +25,12 @@ export default function Home() {
             <article className="acceso-card">
               <h2>Hola, {user.nombre}</h2>
               <p className="muted">Ya iniciaste sesión.</p>
-              <Link className="btn btn-primary" to="/perfil">Ir a mi perfil</Link>
+              <div className="form-actions">
+                {user.rol === 'usuario' && <Link className="btn btn-primary" to="/citas">Agendar una cita</Link>}
+                {user.rol === 'empleado' && <Link className="btn btn-primary" to="/trabajo">Ir a mi trabajo</Link>}
+                {user.rol === 'veterinario' && <Link className="btn btn-primary" to="/panel">Ir a mi veterinaria</Link>}
+                <Link className="btn btn-ghost" to="/perfil">Mi perfil</Link>
+              </div>
             </article>
           </div>
         ) : (

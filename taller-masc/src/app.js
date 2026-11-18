@@ -22,6 +22,8 @@ const productosRoutes       = require('./routes/productos.routes');
 const usuariosRoutes        = require('./routes/usuarios.routes');
 const veterinariasRoutes    = require('./routes/veterinarias.routes');
 const veterinariosRoutes    = require('./routes/veterinarios.routes');
+const misRoutes             = require('./routes/mis.routes');
+const trabajoRoutes         = require('./routes/trabajo.routes');
 
 const app = express();
 
@@ -69,6 +71,8 @@ app.use('/api/productos', productosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/veterinarias', veterinariasRoutes);
 app.use('/api/veterinarios', veterinariosRoutes);
+app.use('/api/mis',     misRoutes);      // usuario: mascotas, citas, historial
+app.use('/api/trabajo', trabajoRoutes);  // empleado: su veterinaria y solicitudes
 
 app.get('/', (req, res) => {
   res.send('Bienvenido a la API MediMascotas');

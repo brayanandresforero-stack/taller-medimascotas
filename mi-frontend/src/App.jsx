@@ -7,6 +7,8 @@ import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
 import Home from './pages/Home';
 import Panel from './pages/Panel';
+import MisCitas from './pages/MisCitas';
+import MiTrabajo from './pages/MiTrabajo';
 
 export default function App() {
   const { user, logout } = useAuth();
@@ -17,6 +19,8 @@ export default function App() {
           <Link to="/" className="brand">Taller Masc</Link>
           <nav className="nav">
             <NavLink to="/" end>Inicio</NavLink>
+            {user.rol === 'usuario' && <NavLink to="/citas">Mis citas</NavLink>}
+            {user.rol === 'empleado' && <NavLink to="/trabajo">Mi trabajo</NavLink>}
             {user.rol === 'veterinario' && <NavLink to="/panel">Mi veterinaria</NavLink>}
             <NavLink to="/perfil">Mi perfil</NavLink>
           </nav>
@@ -33,6 +37,8 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/perfil" element={<main className="page"><Profile /></main>} />
           <Route path="/panel" element={<main className="page wide"><Panel /></main>} />
+          <Route path="/citas" element={<main className="page wide"><MisCitas /></main>} />
+          <Route path="/trabajo" element={<main className="page wide"><MiTrabajo /></main>} />
           <Route path="/perfil/editar" element={<main className="page"><EditProfile /></main>} />
         </Route>
         <Route path="*" element={<main className="page"><p>Página no encontrada</p></main>} />

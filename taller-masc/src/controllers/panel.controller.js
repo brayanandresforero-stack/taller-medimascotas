@@ -64,8 +64,97 @@ const crearVeterinaria = async (req, res) => {
 };
 
 const citas = listaPorVeterinaria(
-  'SELECT * FROM citas WHERE veterinaria_id IN (?) ORDER BY fecha_hora DESC'
+  `SELECT c.id, DATE_FORMAT(c.fecha_hora, '%Y-%m-%d %H:%i') AS fecha_hora, c.estado,
+          m.nombre AS mascota, u.nombre AS propietario, u.email AS correo,
+          c.motivo, v.nombre AS veterinaria, c.observaciones
+     FROM citas c
+     JOIN veterinarias v  ON v.id = c.veterinaria_id
+     LEFT JOIN mascotas m ON m.id = c.mascota_id
+     LEFT JOIN usuarios u ON u.id = m.usuario_id
+    WHERE c.veterinaria_id IN (?)
+    ORDER BY c.fecha_hora DESC`
 );
+
+// Solicitudes de empleados para unirse a sus veterinarias (pendientes primero)
+const solicitudes = listaPorVeterinaria(
+  `SELECT s.id, s.estado, e.nombre AS empleado, e.email AS correo, s.cargo,
+          v.nombre AS veterinaria, DATE_FORMAT(s.created_at, '%Y-%m-%d %H:%i') AS enviada
+     FROM solicitudes_empleo s
+     JOIN empleados e    ON e.id = s.empleado_id
+     JOIN veterinarias v ON v.id = s.veterinaria_id
+    WHERE s.veterinaria_id IN (?)
+    ORDER BY (s.estado = 'pendiente') DESC, s.id DESC`
+);
+
+// PUT /api/panel/solicitudes/:id { accion: 'aceptar' | 'rechazar' }
+const responderSolicitud = async (req, res) => {
+  const { accion } = req.body;
+  if (!['aceptar', 'rechazar'].includes(accion)) {
+    return res.status(400).json({ ok: false, msg: 'La acción debe ser aceptar o rechazar' });
+  }
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `SELECT s.id, s.empleado_id, s.veterinaria_id, s.cargo, s.estado
+         FROM solicitudes_empleo s
+         JOIN veterinarias v ON v.id = s.veterinaria_id
+        WHERE s.id = ? AND v.veterinario_id = ?`,
+      [req.params.id, req.user.veterinarioId]
+    );
+    const sol = rows[0];
+    if (!sol) return res.status(404).json({ ok: false, msg: 'Esa solicitud no es de tus veterinarias' });
+    if (sol.estado !== 'pendiente') {
+      return res.status(409).json({ ok: false, msg: `Esta solicitud ya fue ${sol.estado}` });
+    }
+
+    await conn.beginTransaction();
+    const nuevo = accion === 'aceptar' ? 'aceptada' : 'rechazada';
+    await conn.query(
+      'UPDATE solicitudes_empleo SET estado = ?, respondida_at = NOW() WHERE id = ?', [nuevo, sol.id]
+    );
+    if (accion === 'aceptar') {
+      // El empleado pasa a trabajar en esta veterinaria
+      await conn.query(
+        'UPDATE empleados SET veterinaria_id = ?, cargo = COALESCE(?, cargo) WHERE id = ?',
+        [sol.veterinaria_id, sol.cargo, sol.empleado_id]
+      );
+      // Sus otras solicitudes pendientes quedan sin efecto
+      await conn.query(
+        `UPDATE solicitudes_empleo SET estado = 'rechazada', respondida_at = NOW()
+          WHERE empleado_id = ? AND estado = 'pendiente' AND id <> ?`,
+        [sol.empleado_id, sol.id]
+      );
+    }
+    await conn.commit();
+    res.json({ ok: true, msg: accion === 'aceptar' ? 'Empleado aceptado' : 'Solicitud rechazada' });
+  } catch (e) {
+    await conn.rollback().catch(() => {});
+    fallo(res, e);
+  } finally {
+    conn.release();
+  }
+};
+
+// PUT /api/panel/citas/:id { estado: 'confirmada' | 'atendida' | 'cancelada' }
+const estadoCita = async (req, res) => {
+  try {
+    const { estado } = req.body;
+    if (!['confirmada', 'atendida', 'cancelada'].includes(estado)) {
+      return res.status(400).json({ ok: false, msg: 'Estado no válido' });
+    }
+    const [r] = await pool.query(
+      `UPDATE citas c
+         JOIN veterinarias v ON v.id = c.veterinaria_id
+          SET c.estado = ?
+        WHERE c.id = ? AND v.veterinario_id = ?`,
+      [estado, req.params.id, req.user.veterinarioId]
+    );
+    if (!r.affectedRows) return res.status(404).json({ ok: false, msg: 'Esa cita no es de tus veterinarias' });
+    res.json({ ok: true, msg: 'Cita actualizada' });
+  } catch (e) {
+    fallo(res, e);
+  }
+};
 const consultas = listaPorVeterinaria(
   'SELECT * FROM consultas WHERE veterinaria_id IN (?) ORDER BY id DESC'
 );
@@ -82,4 +171,7 @@ const empleados = listaPorVeterinaria(
   true
 );
 
-module.exports = { veterinarias, crearVeterinaria, citas, consultas, inventario, empleados };
+module.exports = {
+  veterinarias, crearVeterinaria, citas, consultas, inventario, empleados,
+  solicitudes, responderSolicitud, estadoCita,
+};

@@ -37,13 +37,28 @@ const registrarEmpleado = async (req, res) => {
   const [dup] = await db.query('SELECT id FROM empleados WHERE email = ?', [email]);
   if (dup.length) return res.status(409).json({ error: 'Email ya registrado' });
 
+  // El empleado queda sin veterinaria hasta que el veterinario acepte su solicitud
   const hash = await bcrypt.hash(password, 10);
-  const [result] = await db.query(
-    'INSERT INTO empleados (nombre, email, cargo, password, salario, veterinaria_id) VALUES (?, ?, ?, ?, 0, ?)',
-    [nombre, email, cargo || 'Empleado', hash, veterinaria_id]
-  );
-  const token = firmar({ id: result.insertId, email, tipo: 'empleado', rol: 'empleado' });
-  res.status(201).json({ token });
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [result] = await conn.query(
+      'INSERT INTO empleados (nombre, email, cargo, password, salario, veterinaria_id) VALUES (?, ?, ?, ?, 0, NULL)',
+      [nombre, email, cargo || 'Empleado', hash]
+    );
+    await conn.query(
+      'INSERT INTO solicitudes_empleo (empleado_id, veterinaria_id, cargo) VALUES (?, ?, ?)',
+      [result.insertId, veterinaria_id, cargo || null]
+    );
+    await conn.commit();
+    const token = firmar({ id: result.insertId, email, tipo: 'empleado', rol: 'empleado' });
+    res.status(201).json({ token });
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
 };
 
 // ───────── Registro: veterinario + su veterinaria (todo o nada) ─────────

@@ -75,14 +75,16 @@ export default function Register() {
         {tipo === 'empleado' && (
           <>
             <div className="field">
-              <label htmlFor="veterinaria_id">Veterinaria donde trabajas</label>
+              <label htmlFor="veterinaria_id">Veterinaria a la que quieres unirte</label>
               <select id="veterinaria_id" name="veterinaria_id" value={form.veterinaria_id} onChange={onChange} required>
                 <option value="">Elige una veterinaria</option>
                 {veterinarias.map((v) => (
                   <option key={v.id} value={v.id}>{v.nombre}{v.direccion ? ` — ${v.direccion}` : ''}</option>
                 ))}
               </select>
-              {veterinarias.length === 0 && <span className="hint">Aún no hay veterinarias registradas.</span>}
+              {veterinarias.length === 0
+                ? <span className="hint">Aún no hay veterinarias registradas.</span>
+                : <span className="hint">El veterinario debe aceptar tu solicitud. Mientras tanto podrás entrar y verla en «Mi trabajo».</span>}
             </div>
             {campo('cargo', 'Cargo', { placeholder: 'Por ejemplo, auxiliar', required: true })}
           </>
